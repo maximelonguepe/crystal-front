@@ -5,6 +5,7 @@ import './App.css';
 
 import NavbarApp from "./NavbarApp";
 import PositionsList from "./PositionsList";
+import ComparePositions from "./ComparePositions";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <br/>
           <Routes>
               <Route path="/" element={<PositionsList/>}/>
+              <Route path="/compare" element={<ComparePositions/>}/>
 
           </Routes>
         </div>

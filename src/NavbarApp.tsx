@@ -23,9 +23,9 @@ const NavbarApp = () => {
                             </Nav.Item>
 
                             <Nav.Item id="my-events" className="d-flex mb-2 me-2 mb-lg-0">
-                                <Link to='/create'>
+                                <Link to='/compare'>
                                     <Button>
-                                        Ajouter une position
+                                        Comparer deux positions
                                     </Button>
                                 </Link>
                             </Nav.Item>

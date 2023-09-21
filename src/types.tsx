@@ -8,4 +8,5 @@ export interface Location {
 export interface Coordinates {
     x: number;
     y: number;
+    coordinates: number[];
 }

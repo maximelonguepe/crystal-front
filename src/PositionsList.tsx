@@ -1,16 +1,21 @@
-import {Button, Col, Modal, Row, Table} from "react-bootstrap";
+import {Button, Col, FormControl, Modal, Row, Table} from "react-bootstrap";
 import {apiUrl, Location} from "./types";
 import {useEffect, useState} from "react";
 
 const PositionsList = () => {
     const [locations, setLocations] = useState<Location[]>([]);
     const [showModalDeleteLocation, setShowModalDeleteLocation] = useState(false);
+    const [showModalCreateLocation, setShowModalCreateLocation] = useState(false);
+
     const [locationToBeDeleted, setLocationToBeDeleted] = useState<Location>({
-        id: "", location: {x: 0, y: 0}, name: ""
+        id: "", location: {x: 0, y: 0,coordinates:[]}, name: ""
+    });
+    const [locationToBeCreated, setLocationToBeCreated] = useState<Location>({
+        id: "", location: {x: 0, y: 0,coordinates:[]}, name: ""
     });
     const fetchLocations = async () => {
         try {
-            const response = await fetch(apiUrl+"locations");
+            const response = await fetch(apiUrl + "locations");
             const jsonData = await response.json();
             setLocations(jsonData);
         } catch (error) {
@@ -24,20 +29,50 @@ const PositionsList = () => {
             const response = await fetch(apiUrl + `locations?id=${locationToBeDeleted.id}`, {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json', // Vous pouvez ajuster les en-têtes selon vos besoins
+                        'Content-Type': 'application/json',
                     },
                 }
-
             );
+            closeModalDeleteLocation();
             fetchLocations();
 
-        }catch (error) {
+        } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
 
+    const fetchSaveLocation = async () => {
+        locationToBeCreated.location.coordinates.push(locationToBeCreated.location.x,locationToBeCreated.location.y);
+        try {
+            const response = await fetch(apiUrl + "locations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(locationToBeCreated)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                closeModalCreateLocation();
+                await fetchLocations();
+
+            } else {
+
+            }
+        } catch (error) {
+
+        }
+    };
+
+
     function closeModalDeleteLocation() {
         setShowModalDeleteLocation(false);
+    }
+
+    function closeModalCreateLocation() {
+        setShowModalCreateLocation(false);
     }
 
     function findLocationById(array: Array<Location>, id: string) {
@@ -51,8 +86,36 @@ const PositionsList = () => {
             setLocationToBeDeleted(objetFound);
             setShowModalDeleteLocation(true);
         } else {
-            // Gérer le cas où l'objet n'est pas trouvé, par exemple, afficher une erreur ou une notification.
             console.error(`Aucun objet trouvé avec l'ID ${id}`);
+        }
+    };
+
+    const onclickShowModalCreateLocation = () => {
+        setLocationToBeCreated({
+            id: "", location: {x: 0, y: 0,coordinates:[]}, name: ""
+        });
+        setShowModalCreateLocation(true);
+
+    };
+    const handleInputLocationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+
+
+        if (name === 'x' || name === 'y') {
+            if (value !== '' && !isNaN(parseFloat(value))) {
+            setLocationToBeCreated((prevState) => ({
+                ...prevState,
+                location: {
+                    ...prevState.location,
+                    [name]: parseFloat(value),
+                },
+            }));}
+        } else {
+
+            setLocationToBeCreated((prevState) => ({
+                ...prevState,
+                [name]: value,
+            }));
         }
     };
     useEffect(() => {
@@ -95,12 +158,13 @@ const PositionsList = () => {
                 )}
                 <Row>
                     <Col>
-                        <Button variant="primary">Ajouter une localisation</Button>
+                        <Button variant="primary" onClick={onclickShowModalCreateLocation}>Ajouter une localisation</Button>
                     </Col>
                 </Row>
+
                 <Modal show={showModalDeleteLocation} onHide={closeModalDeleteLocation}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Etes vous sur de supprimer l'objet suivant</Modal.Title>
+                        <Modal.Title>Etes vous sur de supprimer la localisation suivant</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Row>
@@ -144,6 +208,63 @@ const PositionsList = () => {
                         <Button variant="danger" onClick={fetchdeleteLocation}>Supprimer</Button>
                     </Modal.Footer>
                 </Modal>
+
+                <Modal show={showModalCreateLocation} onHide={closeModalCreateLocation}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Creer une localisation</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Row>
+                            <Col>
+                                Nom :
+                            </Col>
+                            <Col>
+                                <FormControl
+                                    type="text"
+                                    name="name"
+                                    value={locationToBeCreated.name}
+                                    onChange={handleInputLocationChange}
+                                    autoFocus
+                                />
+                            </Col>
+
+                        </Row>
+                        <Row>
+                            <Col>
+                                Latitude :
+                            </Col>
+                            <Col>
+                                <FormControl
+                                    type="text"
+                                    name="x"
+                                    value={locationToBeCreated.location.x}
+                                    onChange={handleInputLocationChange}
+
+                                />
+                            </Col>
+
+                        </Row>
+                        <Row>
+                            <Col>
+                                Longitude :
+                            </Col>
+
+                            <Col>
+                                <FormControl
+                                    type="text"
+                                    name="y"
+                                    value={locationToBeCreated.location.y}
+                                    onChange={handleInputLocationChange}
+
+                                />
+                            </Col>
+                        </Row>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="primary" onClick={fetchSaveLocation}>Ajouter</Button>
+                    </Modal.Footer>
+                </Modal>
+
             </>
 
         )
